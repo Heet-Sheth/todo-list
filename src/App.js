@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
+import Dialog from './dialog';
 
 function classNames(...args) {
   return args.filter(Boolean).join(' ');
@@ -12,11 +13,14 @@ class App extends Component {
       searchText: '',
       addDialogue: false,
       isEdit: false,
-      notes: { text: 'hello' },
+      count: 0,
+      tempText: '',
+      notes: [],
     };
     this.setSearchBox = this.setSearchBox.bind(this);
+    this.setIsEdit = this.setIsEdit.bind(this, String);
+    this.addItems = this.addItems.bind(this, String);
     this.setAddDialogue = this.setAddDialogue.bind(this);
-    this.setIsEdit = this.setIsEdit.bind(this);
   }
   setSearchBox(e) {
     this.setState({ searchText: e.target.value });
@@ -24,31 +28,29 @@ class App extends Component {
   setAddDialogue(e) {
     this.setState({ addDialogue: !this.state.addDialogue });
   }
-  setIsEdit(e) {
+  setIsEdit(notUsefull, e, element) {
+    this.setState({ tempText: element });
     this.setState({ isEdit: e.target.id === 'cardTitle' ? true : false });
+    this.setAddDialogue(e);
+  }
+  addItems(e, element) {
+    if (!this.state.isEdit) {
+      this.setState({
+        notes: [...this.state.notes, { id: this.state.count, text: element }],
+      });
+      this.setState({ count: this.state.count + 1 });
+    }
     this.setAddDialogue(e);
   }
   render() {
     return (
       <div className='App'>
         {this.state.addDialogue && (
-          <div>
-            <div
-              className='dialogBackground'
-              onClick={this.setAddDialogue}
-            ></div>
-            <div className='dialog'>
-              <h2 className='dialogHead'>
-                {this.state.isEdit ? 'Edit' : 'Add'} a Note
-              </h2>
-              <div className='dialogBody'>
-                <textarea className='dialogText'>Hello...</textarea>
-                <div className='dialogFooter'>
-                  <button onClick={this.setAddDialogue}>Save</button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <Dialog
+            edit={this.state.isEdit}
+            element={this.state.tempText}
+            addItems={this.addItems}
+          />
         )}
         <div className='heading'>
           <span>LOGO</span>
@@ -62,29 +64,36 @@ class App extends Component {
           <input type='button' value='search' />
         </div>
         <div className='body'>
-          <div className='card'>
-            <div className='cardHead'>
-              <h3 id='cardTitle' onClick={this.setIsEdit}>
-                Title
-              </h3>
-              <input type='button' value='X' />
-            </div>
-            <div className='cardBody'>
-              <textarea className='cardText' disabled>
-                Hello...
-              </textarea>
-            </div>
-          </div>
+          {this.state.notes.map((note, index) => {
+            return (
+              <div className='card' key={index}>
+                <div className='cardHead'>
+                  <h3
+                    id='cardTitle'
+                    onClick={(event) => this.setIsEdit(event, note.text)}
+                  >
+                    Note {note.id}
+                  </h3>
+                  <input type='button' value='X' />
+                </div>
+                <div className='cardBody'>
+                  <textarea className='cardText' disabled>
+                    {note.text}
+                  </textarea>
+                </div>
+              </div>
+            );
+          })}
         </div>
         <button
-          id='addButton'
           className={classNames(
             'addButton',
             this.state.addDialogue
               ? 'addButtonRotate'
               : 'addButtonRotateReverse'
           )}
-          onClick={this.setIsEdit}
+          id='addButton'
+          onClick={(event) => this.setIsEdit(event, '')}
         >
           <h1>+</h1>
         </button>
